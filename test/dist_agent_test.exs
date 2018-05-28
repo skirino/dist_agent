@@ -77,6 +77,26 @@ defmodule DistAgentTest do
     timeout_in_tick_sender() # 2 => 1
     timeout_in_tick_sender() # 1 => 0
     timeout_in_tick_sender() # 0: timeout
-    assert DistAgent.query(@q, A, "k3", :get) == {:error, :agent_not_found}
+    assert DistAgent.query(@q, A, "k4", :get) == {:error, :agent_not_found}
+  end
+
+  test "should rate-limit commands to the same distributed agent" do
+    assert DistAgent.command(@q, A, "k5", 0, [rate_limit: {1000, 10}]) == {:ok, :ok}
+    assert_receive({:after_command, nil, 0, :ok, 0})
+    assert DistAgent.command(@q, A, "k5", 1, [rate_limit: {1000, 10}]) == {:ok, :ok}
+    assert_receive({:after_command, 0, 1, :ok, 1})
+    assert DistAgent.command(@q, A, "k5", 2, [rate_limit: {1000, 10}]) == {:ok, :ok}
+    assert_receive({:after_command, 1, 2, :ok, 2})
+    {:error, {:rate_limit_reached, _}} = DistAgent.command(@q, A, "k5", 3, [rate_limit: {1000, 10}])
+  end
+
+  test "should rate-limit queries to the same distributed agent" do
+    assert DistAgent.command(@q, A, "k6", 0, [rate_limit: {1000, 5}]) == {:ok, :ok}
+    assert_receive({:after_command, nil, 0, :ok, 0})
+    assert DistAgent.query(@q, A, "k6", :get, [rate_limit: {1000, 5}]) == {:ok, 0}
+    assert_receive({:after_query, 0, :get, 0})
+    assert DistAgent.query(@q, A, "k6", :get, [rate_limit: {1000, 5}]) == {:ok, 0}
+    assert_receive({:after_query, 0, :get, 0})
+    {:error, {:rate_limit_reached, _}} = DistAgent.query(@q, A, "k6", :get, [rate_limit: {1000, 5}])
   end
 end

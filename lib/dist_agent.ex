@@ -88,20 +88,34 @@ defmodule DistAgent do
   #
   # command & query
   #
+  @type option :: RaftKV.option
+                | {:rate_limit, nil | {milliseconds_per_token :: pos_integer, max_tokens :: pos_integer}}
+
   @doc """
   """
   defun command(quota_name      :: v[QName.t],
                 callback_module :: v[module],
                 agent_key       :: v[String.t],
                 command         :: Behaviour.command,
-                options         :: [RaftKV.option] \\ []) :: {:ok, Behaviour.ret} | {:error, :quota_limit_reached | :quota_not_found | :no_leader} do
+                options         :: [option] \\ []) :: {:ok, Behaviour.ret} | {:error, :quota_limit_reached | :quota_not_found | {:rate_limit_reached, milliseconds_to_wait :: pos_integer} | :no_leader} do
     id = {quota_name, callback_module, agent_key}
     options = Keyword.put_new(options, :call_module, BatchedCommunication)
+    case Keyword.get(options, :rate_limit) do
+      nil                            -> command_impl(id, command, options)
+      {millis_per_token, max_tokens} ->
+        case Foretoken.take(id, millis_per_token, max_tokens, 3) do
+          :ok                      -> command_impl(id, command, options)
+          {:error, millis_to_wait} -> {:error, {:rate_limit_reached, millis_to_wait}}
+        end
+    end
+  end
+
+  defp command_impl(id, command, options) do
     RaftKV.command(:dist_agent, id, command, options)
     |> R.bind(fn
       {:"$dist_agent_check_quota", pending_index} -> check_quota_for_new_agent_id(id, pending_index, options)
       :"$dist_agent_quota_limit_reached"          -> {:error, :quota_limit_reached}
-      :"$dist_agent_retry"                        -> :timer.sleep(200); command(quota_name, callback_module, agent_key, command, options) # shouldn't happen, retry indefinitely
+      :"$dist_agent_retry"                        -> :timer.sleep(200); command_impl(id, command, options) # shouldn't happen, retry indefinitely
       ret                                         -> {:ok, ret}
     end)
   end
@@ -133,9 +147,20 @@ defmodule DistAgent do
               callback_module :: v[module],
               agent_key       :: v[String.t],
               query           :: Behaviour.query,
-              options         :: [RaftKV.option] \\ []) :: {:ok, Behaviour.ret} | {:error, :agent_not_found | :no_leader} do
+              options         :: [option] \\ []) :: {:ok, Behaviour.ret} | {:error, :agent_not_found | {:rate_limit_reached, milliseconds_to_wait :: pos_integer} | :no_leader} do
     id = {quota_name, callback_module, agent_key}
     options = Keyword.put_new(options, :call_module, BatchedCommunication)
+    case Keyword.get(options, :rate_limit) do
+      nil                            -> query_impl(id, query, options)
+      {millis_per_token, max_tokens} ->
+        case Foretoken.take(id, millis_per_token, max_tokens, 1) do
+          :ok                      -> query_impl(id, query, options)
+          {:error, millis_to_wait} -> {:error, {:rate_limit_reached, millis_to_wait}}
+        end
+    end
+  end
+
+  defp query_impl(id, query, options) do
     case RaftKV.query(:dist_agent, id, query, options) do
       {:ok, result}            -> result
       {:error, :key_not_found} -> {:error, :agent_not_found}
