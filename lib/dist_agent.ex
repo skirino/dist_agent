@@ -92,6 +92,74 @@ defmodule DistAgent do
                 | {:rate_limit, nil | {milliseconds_per_token :: pos_integer, max_tokens :: pos_integer}}
 
   @doc """
+  Sends a read-only query to the specified distributed agent and receives a reply from it.
+
+  The target distributed agent is specified by the triplet: `quota_name`, `callback_module` and `agent_key`.
+  If the agent has not yet activated `{:error, :agent_not_found}` is returned.
+
+  On receipt of the query, the distributed agent evaluates `c:DistAgent.Behaviour.handle_query/2` callback
+  and then `c:DistAgent.Behaviour.after_query/3` callback.
+  For the detailed semantics of the arguments and return values of the callbacks refer to `DistAgent.Behaviour`.
+
+  ## Options
+
+  The last argument to this function is a list of options.
+  Most of options are directly passed to the underlying function (`RaftKV.query/4`).
+  However, unlike `RaftKV.query/4`, `:call_module` option defaults to `BatchedCommunication` in this function.
+
+  You may also pass `:rate_limit` option to enable per-node rate limiting feature.
+  The value part of `:rate_limit` option must be a pair of positive integers.
+  Executing a query consumes 1 token in the corresponding bucket.
+  See also `Foretoken.take/4`.
+  """
+  defun query(quota_name      :: v[QName.t],
+              callback_module :: v[module],
+              agent_key       :: v[String.t],
+              query           :: Behaviour.query,
+              options         :: [option] \\ []) :: {:ok, Behaviour.ret} | {:error, :agent_not_found | {:rate_limit_reached, milliseconds_to_wait :: pos_integer} | :no_leader} do
+    id = {quota_name, callback_module, agent_key}
+    options = Keyword.put_new(options, :call_module, BatchedCommunication)
+    case Keyword.get(options, :rate_limit) do
+      nil                            -> query_impl(id, query, options)
+      {millis_per_token, max_tokens} ->
+        case Foretoken.take(id, millis_per_token, max_tokens, 1) do
+          :ok                      -> query_impl(id, query, options)
+          {:error, millis_to_wait} -> {:error, {:rate_limit_reached, millis_to_wait}}
+        end
+    end
+  end
+
+  defp query_impl(id, query, options) do
+    case RaftKV.query(:dist_agent, id, query, options) do
+      {:ok, result}            -> result
+      {:error, :key_not_found} -> {:error, :agent_not_found}
+      {:error, _} = e          -> e
+    end
+  end
+
+  @doc """
+  Sends a command to the specified distributed agent and receives a reply from it.
+
+  The target distributed agent is specified by the triplet: `quota_name`, `callback_module` and `agent_key`.
+  If the agent has not yet activated, it is activated before applying the command.
+  During activation of the new agent, quota limit is checked (and it involves additional message round-trip).
+  As such it is necessary that the quota is created (by `put_quota/2`) before calling this function.
+  When the quota limit is violated `{:error, :quota_limit_reached}` is returned.
+
+  On receipt of the command, the distributed agent evaluates `c:DistAgent.Behaviour.handle_command/2` callback
+  and then `c:DistAgent.Behaviour.after_command/4` callback.
+  For the semantics of the arguments and return values of the callbacks refer to `DistAgent.Behaviour`.
+
+  ## Options
+
+  The last argument to this function is a list of options.
+  Most of options are directly passed to the underlying function (`RaftKV.command/4`).
+  However, unlike `RaftKV.command/4`, `:call_module` option defaults to `BatchedCommunication` in this function.
+
+  You may also pass `:rate_limit` option to enable per-node rate limiting feature.
+  The value part of `:rate_limit` option must be a pair of positive integers.
+  Executing a command consumes 3 tokens in the corresponding bucket (as command is basically more expensive than query).
+  See also `Foretoken.take/4`.
   """
   defun command(quota_name      :: v[QName.t],
                 callback_module :: v[module],
@@ -139,32 +207,5 @@ defmodule DistAgent do
   defp revert_preparing_agent_for_nonexisting_quota(id, options) do
     _ = RaftKV.command(:dist_agent, id, :"$dist_agent_quota_not_found", options)
     {:error, :quota_not_found}
-  end
-
-  @doc """
-  """
-  defun query(quota_name      :: v[QName.t],
-              callback_module :: v[module],
-              agent_key       :: v[String.t],
-              query           :: Behaviour.query,
-              options         :: [option] \\ []) :: {:ok, Behaviour.ret} | {:error, :agent_not_found | {:rate_limit_reached, milliseconds_to_wait :: pos_integer} | :no_leader} do
-    id = {quota_name, callback_module, agent_key}
-    options = Keyword.put_new(options, :call_module, BatchedCommunication)
-    case Keyword.get(options, :rate_limit) do
-      nil                            -> query_impl(id, query, options)
-      {millis_per_token, max_tokens} ->
-        case Foretoken.take(id, millis_per_token, max_tokens, 1) do
-          :ok                      -> query_impl(id, query, options)
-          {:error, millis_to_wait} -> {:error, {:rate_limit_reached, millis_to_wait}}
-        end
-    end
-  end
-
-  defp query_impl(id, query, options) do
-    case RaftKV.query(:dist_agent, id, query, options) do
-      {:ok, result}            -> result
-      {:error, :key_not_found} -> {:error, :agent_not_found}
-      {:error, _} = e          -> e
-    end
   end
 end

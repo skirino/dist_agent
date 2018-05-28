@@ -30,6 +30,8 @@ On the other hand, "distributed agent" offers the following features:
 # Concepts
 
 - Distributed agent
+    - Distributed agent represents a state and its associated behaviour.
+      It can also take autonomous actions using the tick mechanism (explained below).
     - Each distributed agent is identified by the following triplet:
         - `quota_id`: a `String.t` that specifies the quota which this distributed agent belongs to
         - `module`: a callback module of `DistAgent.Behaviour`
@@ -37,7 +39,6 @@ On the other hand, "distributed agent" offers the following features:
     - Behaviour of a distributed agent is defined by the `module` part of its identity.
         - The callbacks are divided into "pure" ones and "side-effecting" ones.
     - Distributed agent is "activated" (initialized) when `DistAgent.command/5` is called with a nonexisting ID.
-        - Subsequent calls of `DistAgent.command/5` and `DistAgent.query/5` are handled by the agent.
     - Distributed agent is "deactivated" (removed from memory) when it's told to do so by the callback.
 - Quota
     - Quota defines an upper limit of number of distributed agents that can run within it (soft limit).
@@ -48,14 +49,14 @@ On the other hand, "distributed agent" offers the following features:
         - They can be used as low-resolution timers.
     - Ticks are emitted by a limited number of dedicated processes (whose sole task is to periodically emit ticks),
       thus reducing number of timers that have to be maintained.
-    - Each distributed agent may include "what to do on the next tick" in each callback's return value:
-        - trigger `handle_timeout/2` and `after_timeout/3` callbacks after the specified number of ticks
+    - Each distributed agent may include "what to do on the subsequent ticks" in each callback's return value:
+        - do nothing
+        - trigger timeout after the specified number of ticks
         - deactivate itself when it has received the specified number of ticks without client commands/queries
-        - (do nothing)
 
 # Design
 
-## Raft and process management
+## Raft protocol and libraries
 
 `dist_agent` heavily depends on [Raft consensus protocol](https://raft.github.io/) for synchronous replication
 and its failover mechanism.
@@ -80,11 +81,23 @@ We take an approach that
 
 This dynamic "sharding" of distributed agents and also the agent ID-based data model
 are defined by [`raft_kv`](https://github.com/skirino/raft_kv).
+This design may introduce a potential problem:
+a distributed agent can be blocked by a long-running operation of another agent
+which happened to reside in the same consensus group.
+It is the responsibility of implementer of callback modules of distributed agents
+to ensure that handling of query/command/timeout doesn't take long time.
 
 Even with reduced number of consensus groups explained above,
 state replications and healthchecks involve high rate of inter-node communications.
 In order to reduce network traffic and TCP overhead, remote communications between nodes are batched
 with the help of [`batched_communication`](https://github.com/skirino/batched_communication).
+
+Since establishing a consensus (committing a command) in Raft protocol requires
+round trips to remote nodes, it is a relatively expensive operation.
+In order not to overwhelm a job queue, accesses to a job queue are rate-limited by
+the [token bucket algorithm](https://en.wikipedia.org/wiki/Token_bucket).
+Rate limiting is imposed on a per-node basis; in each node, there exists a bucket per distributed agent.
+We use [`foretoken`](https://github.com/skirino/foretoken) as the token bucket implementation.
 
 ## Quota management
 
@@ -113,7 +126,3 @@ Currently we have no plan to:
 
 - provide API to efficiently retrieve list of existing distributed agents
 - provide links/monitors that Erlang processes have
-
-# TODO
-
-- taking statistics about each agent (number of command, queries, timeouts)

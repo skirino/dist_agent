@@ -11,7 +11,7 @@ defmodule DistAgent.Mixfile do
       build_embedded:    Mix.env() == :prod,
       start_permanent:   Mix.env() == :prod,
       deps:              deps(),
-      description:       "TBD",
+      description:       "Elixir framework to run distributed, fault-tolerant variant of Agent.",
       package:           package(),
       source_url:        @github_url,
       homepage_url:      @github_url,
