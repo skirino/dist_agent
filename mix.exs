@@ -22,7 +22,6 @@ defmodule DistAgent.Mixfile do
 
   def application() do
     [
-      extra_applications: [:logger],
       mod: {DistAgent.Application, []},
     ]
   end
@@ -35,9 +34,9 @@ defmodule DistAgent.Mixfile do
       {:raft_kv              , "~> 0.2"},
       {:batched_communication, "~> 0.1"},
       {:foretoken            , "~> 0.1"},
-      {:dialyze              , "~> 0.2" , only: :dev},
-      {:ex_doc               , "~> 0.18", only: :dev},
-      {:excoveralls          , "~> 0.8" , only: :test},
+      {:dialyze              , "~> 0.2" , [only: :dev ]},
+      {:ex_doc               , "~> 0.18", [only: :dev ]},
+      {:excoveralls          , "~> 0.8" , [only: :test]},
     ]
   end
 
