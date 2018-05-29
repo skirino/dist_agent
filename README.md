@@ -2,7 +2,7 @@
 
 Elixir framework to run distributed, fault-tolerant variant of `Agent`.
 
-- [API Documentation](https://github.com/elixir-lang/ex_doc)
+- [API Documentation](https://hexdocs.pm/dist_agent/)
 - [Hex package information](https://hex.pm/packages/dist_agent)
 
 [![Hex.pm](http://img.shields.io/hexpm/v/dist_agent.svg)](https://hex.pm/packages/dist_agent)
