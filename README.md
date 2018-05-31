@@ -12,7 +12,7 @@ Elixir framework to run distributed, fault-tolerant variant of `Agent`.
 # Overview
 
 `dist_agent` is an Elixir library (or framework) to run many "distributed agent"s within a cluster of ErlangVM nodes.
-"Distributed agent" has the followings in common with the Elixir's [`Agent`](https://hexdocs.pm/elixir/Agent.html):
+"Distributed agent" has the followings in common with Elixir's [`Agent`](https://hexdocs.pm/elixir/Agent.html):
 
 - support for arbitrary data structure
 - synchronous communication pattern
@@ -69,9 +69,9 @@ It can be easily seen that the following 2 extremes are not optimal for wide ran
 
 - only 1 consensus group for all distributed agents
     - Not scalable for large number of agents; obviously the leader process becomes the bottleneck.
-- create a consensus group (typically 3 processes in 3 nodes) per distributed agent
+- consensus group (which typically consists of 3 processes in 3 nodes) per distributed agent
     - Cost for timers and healthchecks scales linearly with number of consensus groups;
-      for many agents, CPU resources are wasted by just maintaining the consensus groups.
+      for many agents, CPU resources are wasted by just maintaining consensus groups.
 
 And (of course) number of distributed agents in a system changes over time.
 We take an approach that
@@ -84,17 +84,17 @@ are defined by [`raft_kv`](https://github.com/skirino/raft_kv).
 This design may introduce a potential problem:
 a distributed agent can be blocked by a long-running operation of another agent
 which happened to reside in the same consensus group.
-It is the responsibility of implementer of callback modules of distributed agents
-to ensure that handling of query/command/timeout doesn't take long time.
+It is the responsibility of implementers of the callback modules for distributed agents
+to ensure that handlers of query/command/timeout don't take long time.
 
 Even with reduced number of consensus groups explained above,
 state replications and healthchecks involve high rate of inter-node communications.
 In order to reduce network traffic and TCP overhead, remote communications between nodes are batched
 with the help of [`batched_communication`](https://github.com/skirino/batched_communication).
 
-Since establishing a consensus (committing a command) in Raft protocol requires
+Since establishing a consensus (committing a command) in the Raft protocol requires
 round trips to remote nodes, it is a relatively expensive operation.
-In order not to overwhelm a job queue, accesses to a job queue are rate-limited by
+In order not to overwhelm a distributed agent, accesses to each agent are rate-limited by
 the [token bucket algorithm](https://en.wikipedia.org/wiki/Token_bucket).
 Rate limiting is imposed on a per-node basis; in each node, there exists a bucket per distributed agent.
 We use [`foretoken`](https://github.com/skirino/foretoken) as the token bucket implementation.
