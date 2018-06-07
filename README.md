@@ -46,13 +46,12 @@ On the other hand, "distributed agent" offers the following features:
     - Each distributed agent belongs to exactly one quota; quota must be created before activating distributed agents within it.
 - Tick
     - Ticks are periodic events which all distributed agents receive.
-        - They can be used as low-resolution timers.
     - Ticks are emitted by a limited number of dedicated processes (whose sole task is to periodically emit ticks),
       thus reducing number of timers that have to be maintained.
-    - Each distributed agent may include "what to do on the subsequent ticks" in each callback's return value:
-        - do nothing
-        - trigger timeout after the specified number of ticks
-        - deactivate itself when it has received the specified number of ticks without client commands/queries
+    - Each distributed agent specifies "what to do on the subsequent ticks" in callback's return value:
+        1. do nothing
+        1. trigger timeout after the specified number of ticks (i.e., use it as a low-resolution timer).
+        1. deactivate itself when it has received the specified number of ticks without client commands
 
 # Design
 
@@ -94,9 +93,9 @@ with the help of [`batched_communication`](https://github.com/skirino/batched_co
 
 Since establishing a consensus (committing a command) in the Raft protocol requires
 round trips to remote nodes, it is a relatively expensive operation.
-In order not to overwhelm a distributed agent, accesses to each agent are rate-limited by
+In order not to overwhelm raft member processes, accesses to each agent may be rate-limited by
 the [token bucket algorithm](https://en.wikipedia.org/wiki/Token_bucket).
-Rate limiting is imposed on a per-node basis; in each node, there exists a bucket per distributed agent.
+Rate limiting is (when enabled) imposed on a per-node basis; in each node, there exists a bucket per distributed agent.
 We use [`foretoken`](https://github.com/skirino/foretoken) as the token bucket implementation.
 
 ## Quota management
@@ -116,7 +115,7 @@ number of distributed agents queried from consensus leader processes that reside
 It periodically publishes the aggregated value to `DistAgent.Quota`.
 
 Quota is checked only when making a new distributed agent, i.e.,
-on receipt of 1st message to a distributed agent, the quota limit violation is checkd.
+on receipt of 1st message to a distributed agent, the quota limit violation is checked.
 Already created distributed agent is never blocked/stopped due to quota limit.
 Especially agent migration and failover won't be affected.
 

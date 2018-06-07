@@ -75,7 +75,9 @@ defmodule DistAgentTest do
     assert DistAgent.command(@q, A, "k4", da2) == {:ok, :ok}
     assert_receive({:after_command, nil, ^da2, :ok, ^da2})
     timeout_in_tick_sender() # 2 => 1
+    assert DistAgent.query(@q, A, "k4", :get) == {:ok, da2} # queries won't affect `on_tick`
     timeout_in_tick_sender() # 1 => 0
+    assert DistAgent.query(@q, A, "k4", :get) == {:ok, da2} # queries won't affect `on_tick`
     timeout_in_tick_sender() # 0: timeout
     assert DistAgent.query(@q, A, "k4", :get) == {:error, :agent_not_found}
   end
