@@ -58,7 +58,7 @@ On the other hand, "distributed agent" offers the following features:
 ## Raft protocol and libraries
 
 `dist_agent` heavily depends on [Raft consensus protocol](https://raft.github.io/) for synchronous replication
-and its failover mechanism.
+and failover.
 The core protocol is implemented in [`rafted_value`](https://github.com/skirino/rafted_value) and
 the cluster management and fault tolerance mechanism are provided by [`raft_fleet`](https://github.com/skirino/raft_fleet).
 
@@ -103,7 +103,7 @@ We use [`foretoken`](https://github.com/skirino/foretoken) as the token bucket i
 Current statuses of all quotas are managed by a special Raft consensus group named `DistAgent.Quota`.
 It's internal state consists of
 
-- `node => {%{quota_id => count}, time_reported}`
+- `%{node => {%{quota_id => count}, time_reported}}`
 - `%{quota_id => limit}`.
 
 When adding a new distributed agent, the upper limit is checked by consulting with this Raft consensus group.
@@ -123,5 +123,5 @@ Especially agent migration and failover won't be affected.
 
 Currently we have no plan to:
 
-- provide API to efficiently retrieve list of existing distributed agents
-- provide links/monitors that Erlang processes have
+- provide API to efficiently retrieve list of active distributed agents
+- provide something like links/monitors that Erlang processes have
