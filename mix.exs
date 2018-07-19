@@ -6,7 +6,7 @@ defmodule DistAgent.Mixfile do
   def project() do
     [
       app:               :dist_agent,
-      version:           "0.1.0",
+      version:           "0.1.1",
       elixir:            "~> 1.6",
       build_embedded:    Mix.env() == :prod,
       start_permanent:   Mix.env() == :prod,

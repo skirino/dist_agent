@@ -97,7 +97,7 @@ defmodule DistAgent.Quota do
   end
 
   defun report_local_counts(m :: v[QCountsMap.t]) :: [QName.t] do
-    {:ok, nonexisting_qnames} = RaftFleet.command(__MODULE__, {:add_stats, Node.self(), m, System.system_time(:milliseconds)})
+    {:ok, nonexisting_qnames} = RaftFleet.command(__MODULE__, {:add_stats, Node.self(), m, System.system_time(:millisecond)})
     nonexisting_qnames
   end
 
