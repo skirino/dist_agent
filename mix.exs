@@ -16,7 +16,7 @@ defmodule DistAgent.Mixfile do
       source_url:        @github_url,
       homepage_url:      @github_url,
       test_coverage:     [tool: ExCoveralls],
-      preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
+      preferred_cli_env: [coveralls: :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
     ]
   end
 
@@ -34,9 +34,9 @@ defmodule DistAgent.Mixfile do
       {:raft_kv              , "~> 0.2"},
       {:batched_communication, "~> 0.1"},
       {:foretoken            , "~> 0.1"},
-      {:dialyze              , "~> 0.2" , [only: :dev ]},
-      {:ex_doc               , "~> 0.18", [only: :dev ]},
-      {:excoveralls          , "~> 0.8" , [only: :test]},
+      {:dialyxir             , "~> 0.5"   , [only: :dev ]},
+      {:ex_doc               , "~> 0.18.0", [only: :dev ]},
+      {:excoveralls          , "~> 0.9"   , [only: :test]},
     ]
   end
 

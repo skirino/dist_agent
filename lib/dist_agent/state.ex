@@ -175,8 +175,8 @@ defmodule DistAgent.State do
         :ok
       cmd ->
         case {state_before, state_after} do
-          {{:ok, d1, _c1, _o1}, {:ok, d2, _c2, _o2}} -> mod.after_command(d1 , cmd, ret, d2 )
-          {{:ok, d1, _c1, _o1}, nil                } -> mod.after_command(d1 , cmd, ret, nil)
+          {{:ok, d1, _c1, _o1}, {:ok, d2, _c2, _o2}} -> mod.after_command(d1, cmd, ret, d2 )
+          {{:ok, d1, _c1, _o1}, nil                } -> mod.after_command(d1, cmd, ret, nil)
           _                                          -> :ok
         end
     end
