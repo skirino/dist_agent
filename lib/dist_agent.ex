@@ -97,8 +97,8 @@ defmodule DistAgent do
   The target distributed agent is specified by the triplet: `quota_name`, `callback_module` and `agent_key`.
   If the agent has not yet activated `{:error, :agent_not_found}` is returned.
 
-  On receipt of the query, the distributed agent evaluates `c:DistAgent.Behaviour.handle_query/2` callback
-  and then `c:DistAgent.Behaviour.after_query/3` callback.
+  On receipt of the query, the distributed agent evaluates `c:DistAgent.Behaviour.handle_query/4` callback
+  and then `c:DistAgent.Behaviour.after_query/5` callback.
   For the detailed semantics of the arguments and return values of the callbacks refer to `DistAgent.Behaviour`.
 
   ## Options
@@ -146,8 +146,8 @@ defmodule DistAgent do
   As such it is necessary that the quota is created (by `put_quota/2`) before calling this function.
   When the quota limit is violated `{:error, :quota_limit_reached}` is returned.
 
-  On receipt of the command, the distributed agent evaluates `c:DistAgent.Behaviour.handle_command/2` callback
-  and then `c:DistAgent.Behaviour.after_command/4` callback.
+  On receipt of the command, the distributed agent evaluates `c:DistAgent.Behaviour.handle_command/4` callback
+  and then `c:DistAgent.Behaviour.after_command/6` callback.
   For the semantics of the arguments and return values of the callbacks refer to `DistAgent.Behaviour`.
 
   ## Options

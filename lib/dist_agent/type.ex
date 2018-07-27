@@ -37,7 +37,7 @@ defmodule DistAgent.OnTick do
         For example, `{:timeout, 0}` means that timeout is invoked at the next tick,
         `{:timeout, 1}` means that timeout is invoked at the next next tick, and so on.
   - `{:deactivate, tick_count}`
-      - Deactivate this distributed agent after at least `tick_count` tick intervals.
+      - Deactivate this distributed agent after waiting at least `tick_count * tick_interval`.
         For example, `{:deactivate, 0}` means that the agent is deactivated at the next tick,
         `{:deactivate, 1}` means that the agent is deactivated at the next next tick, and so on.
   """

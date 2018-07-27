@@ -9,12 +9,12 @@ defmodule A do
   @behaviour DistAgent.Behaviour
 
   @impl true
-  def handle_query(data, _query) do
+  def handle_query(_q, _k, data, _query) do
     data
   end
 
   @impl true
-  def handle_command(_data, value) do
+  def handle_command(_q, _k, _data, value) do
     on_tick =
       case value do
         {:timeout   , n} -> {:timeout   , n}
@@ -25,7 +25,7 @@ defmodule A do
   end
 
   @impl true
-  def handle_timeout(data, _now_millis) do
+  def handle_timeout(_q, _k, data, _now_millis) do
     case data do
       :deactivate   -> {nil , nil}
       {:timeout, n} -> {data, {:timeout, n}}
@@ -34,17 +34,17 @@ defmodule A do
   end
 
   @impl true
-  def after_query(data, query, ret) do
+  def after_query(_q, _k, data, query, ret) do
     send({:after_query, data, query, ret})
   end
 
   @impl true
-  def after_command(data_before, command, ret, data_after) do
+  def after_command(_q, _k, data_before, command, ret, data_after) do
     send({:after_command, data_before, command, ret, data_after})
   end
 
   @impl true
-  def after_timeout(data_before, now_millis, data_after) do
+  def after_timeout(_q, _k, data_before, now_millis, data_after) do
     send({:after_timeout, data_before, now_millis, data_after})
   end
 
