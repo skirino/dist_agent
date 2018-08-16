@@ -11,16 +11,9 @@ defmodule DistAgent do
   #
   # initialization
   #
-  @default_rv_options [
-    communication_module:                BatchedCommunication,
-    heartbeat_timeout:                   500,
-    election_timeout:                    2_000,
-    election_timeout_clock_drift_margin: 500,
-  ]
   @default_split_merge_policy %RaftKV.SplitMergePolicy{max_shards: 100, max_keys_per_shard: 100}
 
-  @type init_option :: {:rv_options        , [RaftedValue.option]}
-                     | {:split_merge_policy, RaftKV.SplitMergePolicy.t}
+  @type init_option :: {:split_merge_policy, RaftKV.SplitMergePolicy.t}
 
   @doc """
   Initializes `:dist_agent`.
@@ -42,9 +35,8 @@ defmodule DistAgent do
   end
 
   defp register_keyspace(options) do
-    rv_options = Keyword.get(options, :rv_options        , @default_rv_options        )
-    policy     = Keyword.get(options, :split_merge_policy, @default_split_merge_policy)
-    case RaftKV.register_keyspace(:dist_agent, rv_options, State, State, policy) do
+    policy = Keyword.get(options, :split_merge_policy, @default_split_merge_policy)
+    case RaftKV.register_keyspace(:dist_agent, State, State, policy) do
       :ok                           -> :ok
       {:error, :already_registered} -> :ok
     end
