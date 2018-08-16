@@ -28,12 +28,12 @@ defmodule DistAgent.Mixfile do
 
   defp deps() do
     [
-      {:croma                , ">= 0.9.2"},
-      {:rafted_value         , "~> 0.9"},
-      {:raft_fleet           , "~> 0.8"},
-      {:raft_kv              , "~> 0.2"},
+      {:croma                , "~> 0.10"},
+      {:rafted_value         , "~> 0.10"},
+      {:raft_fleet           , "~> 0.9"},
+      {:raft_kv              , "~> 0.2.4"},
       {:batched_communication, "~> 0.1"},
-      {:foretoken            , "~> 0.1"},
+      {:foretoken            , "~> 0.2"},
       {:dialyxir             , "~> 0.5"   , [only: :dev ]},
       {:ex_doc               , "~> 0.18.0", [only: :dev ]},
       {:excoveralls          , "~> 0.9"   , [only: :test]},
