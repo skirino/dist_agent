@@ -97,7 +97,6 @@ defmodule DistAgent do
 
   The last argument to this function is a list of options.
   Most of options are directly passed to the underlying function (`RaftKV.query/4`).
-  However, unlike `RaftKV.query/4`, `:call_module` option defaults to `BatchedCommunication` in this function.
 
   You may also pass `:rate_limit` option to enable per-node rate limiting feature.
   The value part of `:rate_limit` option must be a pair of positive integers.
@@ -110,7 +109,6 @@ defmodule DistAgent do
               query           :: Behaviour.query,
               options         :: [option] \\ []) :: {:ok, Behaviour.ret} | {:error, :agent_not_found | {:rate_limit_reached, milliseconds_to_wait :: pos_integer} | :no_leader} do
     id = {quota_name, callback_module, agent_key}
-    options = Keyword.put_new(options, :call_module, BatchedCommunication)
     case Keyword.get(options, :rate_limit) do
       nil                            -> query_impl(id, query, options)
       {millis_per_token, max_tokens} ->
@@ -146,7 +144,6 @@ defmodule DistAgent do
 
   The last argument to this function is a list of options.
   Most of options are directly passed to the underlying function (`RaftKV.command/4`).
-  However, unlike `RaftKV.command/4`, `:call_module` option defaults to `BatchedCommunication` in this function.
 
   You may also pass `:rate_limit` option to enable per-node rate limiting feature.
   The value part of `:rate_limit` option must be a pair of positive integers.
@@ -159,7 +156,6 @@ defmodule DistAgent do
                 command         :: Behaviour.command,
                 options         :: [option] \\ []) :: {:ok, Behaviour.ret} | {:error, :quota_limit_reached | :quota_not_found | {:rate_limit_reached, milliseconds_to_wait :: pos_integer} | :no_leader} do
     id = {quota_name, callback_module, agent_key}
-    options = Keyword.put_new(options, :call_module, BatchedCommunication)
     case Keyword.get(options, :rate_limit) do
       nil                            -> command_impl(id, command, options)
       {millis_per_token, max_tokens} ->

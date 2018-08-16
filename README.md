@@ -88,8 +88,15 @@ to ensure that handlers of query/command/timeout don't take long time.
 
 Even with reduced number of consensus groups explained above,
 state replications and healthchecks involve high rate of inter-node communications.
-In order to reduce network traffic and TCP overhead, remote communications between nodes are batched
+In order to reduce network traffic and TCP overhead (with increased latency), remote communications between nodes can be batched
 with the help of [`batched_communication`](https://github.com/skirino/batched_communication).
+It's not included as a dependency of `dist_agent`; to use it you have to add it as a dependency of your project
+and set `BatchedCommunication` module as the following options:
+
+- messages from Raft members: `:communication_module` option in `t:RaftedValue.Config.t/0` of consensus groups
+  (It should be set by `:rafted_value_config_maker` option for `:raft_fleet`.
+  See also `RaftFleet.Config`, `RaftKV.Config` and `DistAgent.Config`.)
+- messages from clients: `:call_module` option as argument to `DistAgent.command/5` and `DistAgent.query/5`
 
 Since establishing a consensus (committing a command) in the Raft protocol requires
 round trips to remote nodes, it is a relatively expensive operation.

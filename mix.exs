@@ -32,7 +32,6 @@ defmodule DistAgent.Mixfile do
       {:rafted_value         , "~> 0.10"},
       {:raft_fleet           , "~> 0.9"},
       {:raft_kv              , "~> 0.2.4"},
-      {:batched_communication, "~> 0.1"},
       {:foretoken            , "~> 0.2"},
       {:dialyxir             , "~> 0.5"   , [only: :dev ]},
       {:ex_doc               , "~> 0.18.0", [only: :dev ]},
