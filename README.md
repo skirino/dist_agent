@@ -33,16 +33,16 @@ On the other hand, "distributed agent" offers the following features:
     - Distributed agent represents a state and its associated behaviour.
       It can also take autonomous actions using the tick mechanism (explained below).
     - Each distributed agent is identified by the following triplet:
-        - `quota_id`: a `String.t` that specifies the quota which this distributed agent belongs to
+        - `quota_name`: a `String.t` that specifies the quota which this distributed agent belongs to
         - `module`: a callback module of `DistAgent.Behaviour`
-        - `key`: an arbitrary `String.t` that uniquely identify the distributed agent within the same `quota_id` and `module`
+        - `key`: an arbitrary `String.t` that uniquely identify the distributed agent within the same `quota_name` and `module`
     - Behaviour of a distributed agent is defined by the `module` part of its identity.
         - The callbacks are divided into "pure" ones and "side-effecting" ones.
     - Distributed agent is "activated" (initialized) when `DistAgent.command/5` is called with a nonexisting ID.
     - Distributed agent is "deactivated" (removed from memory) when it's told to do so by the callback.
 - Quota
     - Quota defines an upper limit of number of distributed agents that can run within it (soft limit).
-    - Each quota is identified by a `quota_id` (`String.t`).
+    - Each quota is identified by a `quota_name` (`String.t`).
     - Each distributed agent belongs to exactly one quota; quota must be created before activating distributed agents within it.
 - Tick
     - Ticks are periodic events which all distributed agents receive.
@@ -110,11 +110,11 @@ We use [`foretoken`](https://github.com/skirino/foretoken) as the token bucket i
 Current statuses of all quotas are managed by a special Raft consensus group named `DistAgent.Quota`.
 It's internal state consists of
 
-- `%{node => {%{quota_id => count}, time_reported}}`
-- `%{quota_id => limit}`.
+- `%{node => {%{quota_name => count}, time_reported}}`
+- `%{quota_name => limit}`.
 
 When adding a new distributed agent, the upper limit is checked by consulting with this Raft consensus group.
-`%{quota_id => count}` reported from each node is valid for 15 minutes.
+`%{quota_name => count}` reported from each node is valid for 15 minutes.
 Counts in removed/unreachable nodes are thus automatically cleaned up.
 
 In each node a `GenServer` named `DistAgent.Quota.Reporter` periodically aggregates
