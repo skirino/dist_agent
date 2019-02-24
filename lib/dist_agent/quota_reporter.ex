@@ -40,6 +40,8 @@ defmodule DistAgent.Quota.Reporter do
   defunp compute_counts() :: {CountsMap.t, %{QName.t => [atom]}} do
     RaftKV.reduce_keyspace_shard_names(:dist_agent, {%{}, %{}}, fn(shard_name, {counts_map, owner_shards_map}) ->
       case RaftedValue.query(shard_name, :list_keys) do
+        {:ok, {:error, :uninitialized}} -> # just after system boot, shard is not yet initialized
+          {counts_map, owner_shards_map}
         {:ok, {l1, l2}} ->
           %{}
           |> accumulate(l1)
