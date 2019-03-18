@@ -101,7 +101,7 @@ defmodule DistAgent do
   You may also pass `:rate_limit` option to enable per-node rate limiting feature.
   The value part of `:rate_limit` option must be a pair of positive integers.
   Executing a query consumes 1 token in the corresponding bucket.
-  See also `Foretoken.take/4`.
+  See also `Foretoken.take/5`.
   """
   defun query(quota_name      :: v[QName.t],
               callback_module :: v[module],
@@ -113,8 +113,8 @@ defmodule DistAgent do
       nil                            -> query_impl(id, query, options)
       {millis_per_token, max_tokens} ->
         case Foretoken.take(id, millis_per_token, max_tokens, 1) do
-          :ok                      -> query_impl(id, query, options)
-          {:error, millis_to_wait} -> {:error, {:rate_limit_reached, millis_to_wait}}
+          :ok                                           -> query_impl(id, query, options)
+          {:error, {:not_enough_token, millis_to_wait}} -> {:error, {:rate_limit_reached, millis_to_wait}}
         end
     end
   end
@@ -148,7 +148,7 @@ defmodule DistAgent do
   You may also pass `:rate_limit` option to enable per-node rate limiting feature.
   The value part of `:rate_limit` option must be a pair of positive integers.
   Executing a command consumes 3 tokens in the corresponding bucket (as command is basically more expensive than query).
-  See also `Foretoken.take/4`.
+  See also `Foretoken.take/5`.
   """
   defun command(quota_name      :: v[QName.t],
                 callback_module :: v[module],
@@ -160,8 +160,8 @@ defmodule DistAgent do
       nil                            -> command_impl(id, command, options)
       {millis_per_token, max_tokens} ->
         case Foretoken.take(id, millis_per_token, max_tokens, 3) do
-          :ok                      -> command_impl(id, command, options)
-          {:error, millis_to_wait} -> {:error, {:rate_limit_reached, millis_to_wait}}
+          :ok                                           -> command_impl(id, command, options)
+          {:error, {:not_enough_token, millis_to_wait}} -> {:error, {:rate_limit_reached, millis_to_wait}}
         end
     end
   end

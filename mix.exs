@@ -6,7 +6,7 @@ defmodule DistAgent.Mixfile do
   def project() do
     [
       app:               :dist_agent,
-      version:           "0.3.0",
+      version:           "0.3.1",
       elixir:            "~> 1.6",
       build_embedded:    Mix.env() == :prod,
       start_permanent:   Mix.env() == :prod,
@@ -32,7 +32,7 @@ defmodule DistAgent.Mixfile do
       {:rafted_value, "~> 0.10"},
       {:raft_fleet  , "~> 0.9"},
       {:raft_kv     , "~> 0.2.4"},
-      {:foretoken   , "~> 0.2"},
+      {:foretoken   , "~> 0.3"},
       {:dialyxir    , "~> 0.5"   , [only: :dev ]},
       {:ex_doc      , "~> 0.18.0", [only: :dev ]},
       {:excoveralls , "~> 0.10"  , [only: :test]},
