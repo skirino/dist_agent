@@ -33,9 +33,9 @@ defmodule DistAgent.Mixfile do
       {:raft_fleet  , "~> 0.9"},
       {:raft_kv     , "~> 0.2.4"},
       {:foretoken   , "~> 0.3"},
-      {:dialyxir    , "~> 0.5"   , [only: :dev ]},
-      {:ex_doc      , "~> 0.18.0", [only: :dev ]},
-      {:excoveralls , "~> 0.10"  , [only: :test]},
+      {:dialyxir    , "~> 1.3" , [only: :dev , runtime: false]},
+      {:ex_doc      , "~> 0.29", [only: :dev , runtime: false]},
+      {:excoveralls , "~> 0.16", [only: :test, runtime: false]},
     ]
   end
 
