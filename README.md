@@ -6,7 +6,6 @@ Elixir framework to run distributed, fault-tolerant variant of `Agent`.
 - [Hex package information](https://hex.pm/packages/dist_agent)
 
 [![Hex.pm](http://img.shields.io/hexpm/v/dist_agent.svg)](https://hex.pm/packages/dist_agent)
-[![Build Status](https://travis-ci.com/skirino/dist_agent.svg)](https://travis-ci.com/github/skirino/dist_agent)
 [![Coverage Status](https://coveralls.io/repos/github/skirino/dist_agent/badge.svg?branch=master)](https://coveralls.io/github/skirino/dist_agent?branch=master)
 
 # Overview
